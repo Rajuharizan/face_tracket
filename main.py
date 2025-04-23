@@ -74,9 +74,10 @@ def toggle_camera():
     st.session_state['frame_count'] = 0
 
 # Safe image display function
-def safe_image_display(image, caption, use_container_width=True):
+def safe_image_display(image, caption):
     try:
-        st.image(image, caption=caption, use_container_width=use_container_width)
+        # Removed the use_container_width parameter
+        st.image(image, caption=caption)
     except Exception as e:
         st.error(f"Error displaying image: {e}")
 
@@ -153,10 +154,10 @@ else:  # Webcam mode
                     processed_frame, num_faces = detect_faces(frame)
                     try:
                         frame_rgb = cv2.cvtColor(processed_frame, cv2.COLOR_BGR2RGB)
+                        # Removed use_container_width parameter
                         frame_placeholder.image(
                             frame_rgb,
-                            caption=f"Faces detected: {num_faces} (Frame {st.session_state['frame_count']})",
-                            use_container_width=True
+                            caption=f"Faces detected: {num_faces} (Frame {st.session_state['frame_count']})"
                         )
                     except Exception as e:
                         status_text.error(f"Error displaying frame: {e}")
