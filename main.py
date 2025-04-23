@@ -47,32 +47,44 @@ if detection_mode == "Upload Image":
         
 else:  # Webcam mode
     st.header("Real-time Face Detection using Webcam")
-    st.write("Click the button below to start/stop the webcam.")
     
     if 'run' not in st.session_state:
         st.session_state['run'] = False
-    
+        st.session_state['camera'] = None
+
     if st.button("Start/Stop Webcam"):
         st.session_state['run'] = not st.session_state['run']
-    
-    FRAME_WINDOW = st.image([])
-    
-    if st.session_state['run']:
-        camera = cv2.VideoCapture(0)
         
+        # Initialize or release camera
+        if st.session_state['run']:
+            st.session_state['camera'] = cv2.VideoCapture(0)
+            if not st.session_state['camera'].isOpened():
+                st.error("Could not open webcam")
+                st.session_state['run'] = False
+        else:
+            if st.session_state['camera'] is not None:
+                st.session_state['camera'].release()
+                st.session_state['camera'] = None
+    
+    FRAME_WINDOW = st.empty()  # Placeholder for video frames
+    
+    if st.session_state['run'] and st.session_state['camera'] is not None:
         while st.session_state['run']:
-            ret, frame = camera.read()
+            ret, frame = st.session_state['camera'].read()
             if not ret:
-                st.error("Failed to capture frame from webcam")
+                st.error("Failed to capture frame - check webcam connection")
+                st.session_state['run'] = False
                 break
             
+            # Process and display frame
             processed_frame, num_faces = detect_faces(frame)
-            processed_frame_rgb = cv2.cvtColor(processed_frame, cv2.COLOR_BGR2RGB)
-            FRAME_WINDOW.image(processed_frame_rgb)
-            st.write(f"Faces detected: {num_faces}")
-        
-        camera.release()
-    else:
+            FRAME_WINDOW.image(
+                cv2.cvtColor(processed_frame, cv2.COLOR_BGR2RGB),
+                caption=f"Faces detected: {num_faces}",
+                use_container_width=True
+            )
+    
+    elif not st.session_state['run']:
         st.write("Webcam is stopped")
 
 # Instructions
